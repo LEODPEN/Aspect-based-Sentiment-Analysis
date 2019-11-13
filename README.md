@@ -1,5 +1,7 @@
 # Aspect-based-Sentiment-Analysis
-Implementation of some aspect-based sentiment analysis models(car dataset);
+> Implementation of some aspect-based sentiment analysis models;
+based on car dataset;
+3 classes
 
 ### Models
 
@@ -10,7 +12,7 @@ Attention-based LSTM for Aspect-level Sentiment Classification
 DataStories at SemEval-2017 Task 4: Deep LSTM with Attention for Message-level and Topic-based Sentiment Analysis
 
 
-### Data Analysis(3 classes)
+### Data Analysis
 
 |            item                | value  |
 |--------------------------------|--------|
@@ -34,3 +36,22 @@ DataStories at SemEval-2017 Task 4: Deep LSTM with Attention for Message-level a
 |tsa      |  0.6710          |  0.6792      |   0.6296    |     0.6445    |
 
 > screenshots --> outputs file
+
+### str tree(run codes)
+
+    .
+    ├── ckpt
+    |   ├── car    saved model files
+    |   └── others
+    ├── data
+    │   ├── car    preprocessed data files
+    |   └── others
+    ├── config.py
+    ├── data_loader.py
+    ├── layers.py
+    ├── models.py
+    ├── preprocess.py
+    ├── train.py
+    └── utils.py
+
+
