@@ -56,26 +56,28 @@ class SentimentModel(object):
         self.max_len = self.config.max_len[self.config.data_name][self.level] # 127
         self.asp_max_len = self.config.asp_max_len[self.config.data_name][self.level] # 19
 
-        # 搞定embedding？
-        if self.config.use_text_input:
+        # 搞定embedding only for atae // tsa 换名字来叫
+        if self.config.use_text_input and self.config.word_embed_type is not 'random':
 
             self.text_embeddings = np.load('./data/%s/%s_%s.npy' % (self.config.data_folder, self.level,
                                                                     self.config.word_embed_type))
-            self.config.idx2token = load_idx2token(self.config.data_folder, self.level)
+            # self.config.idx2token = load_idx2token(self.config.data_folder, self.level)
         else:
+            # random
             self.text_embeddings = None
 
-        if self.config.use_aspect_input:
+        if self.config.use_aspect_input and self.config.word_embed_type is not 'random':
             self.aspect_embeddings = np.load('./data/%s/aspect_%s_%s.npy' % (self.config.data_folder, self.level,
                                                                              self.config.aspect_embed_type))
-            # 是否随机chushihua
-            if config.aspect_embed_type == 'random':
-                self.n_aspect = self.aspect_embeddings.shape[0]
-                self.aspect_embeddings = None
+            # # 是否随机chushihua
+            #             # if config.aspect_embed_type == 'random':
+            #             #     self.n_aspect = self.aspect_embeddings.shape[0]
+            #             #     self.aspect_embeddings = None
         else:
             self.aspect_embeddings = None
 
-        if self.config.use_aspect_text_input: # false，未用上
+        if self.config.use_aspect_text_input and self.config.aspect_embed_type is not 'random':
+            # 可惜不用这个
             self.aspect_text_embeddings = np.load('./data/%s/aspect_text_%s_%s.npy' % (self.config.data_folder,
                                                                                        self.level,
                                                                                        self.config.word_embed_type))
@@ -83,7 +85,8 @@ class SentimentModel(object):
         else:
             self.aspect_text_embeddings = None
 
-        self.all_embeddings = np.load('./data/%s/all_%s_%s.npy' %  (self.config.data_folder, self.level, self.config.word_embed_type))
+        if self.config.model_name is 'tsa' and self.config.word_embed_type is not 'random':
+            self.all_embeddings = np.load('./data/%s/all_%s_%s.npy' % (self.config.data_folder, self.level, self.config.word_embed_type))
 
         self.callbacks = []
         self.init_callbacks()
@@ -164,7 +167,7 @@ class SentimentModel(object):
 
 
     def prepare_input(self, input_data):
-        if  self.config.model_name in ['at_lstm', 'ae_lstm', 'atae_lstm'] :
+        if self.config.model_name in ['at_lstm', 'ae_lstm', 'atae_lstm'] :
             text, aspect = input_data
             print(aspect)
             input_pad = [pad_sequences(text, self.max_len), np.array(aspect)]
@@ -172,7 +175,7 @@ class SentimentModel(object):
         elif self.config.model_name is 'tsa':
             text, aspect_text = input_data
             print(aspect_text)
-            input_pad = [pad_sequences(text, self.max_len),pad_sequences(aspect_text, self.asp_max_len)]
+            input_pad = [pad_sequences(text, self.max_len), pad_sequences(aspect_text, self.asp_max_len)]
         else:
             raise ValueError('model name `{}` not understood'.format(self.config.model_name))
         return input_pad
@@ -220,27 +223,20 @@ class SentimentModel(object):
         input_text = Input(shape=(self.max_len,))
         input_aspect = Input(shape=(1,), )
 
-        if self.use_elmo:
-            elmo_embedding = ELMoEmbedding(output_mode=self.config.elmo_output_mode, idx2word=self.config.idx2token,
-                                           mask_zero=True, hub_url=self.config.elmo_hub_url,
-                                           elmo_trainable=self.config.elmo_trainable)
-            if self.config.use_elmo_alone:
-                text_embed = SpatialDropout1D(0.2)(elmo_embedding(input_text))
-            else:
-                word_embedding = Embedding(input_dim=self.text_embeddings.shape[0],
-                                           output_dim=self.config.word_embed_dim,
-                                           weights=[self.text_embeddings], trainable=self.config.word_embed_trainable,
-                                           mask_zero=True)
-                text_embed = SpatialDropout1D(0.2)(concatenate([word_embedding(input_text), elmo_embedding(input_text)]))
-        else:
+        if self.config.word_embed_type is not 'random':
             word_embedding = Embedding(input_dim=self.text_embeddings.shape[0], output_dim=self.config.word_embed_dim,
                                        weights=[self.text_embeddings], trainable=self.config.word_embed_trainable,
                                        mask_zero=True)
-            # dropout 丢弃比例0.2
-            text_embed = SpatialDropout1D(0.2)(word_embedding(input_text))
+        else:
+            word_embedding = Embedding(input_dim=self.config.text_random_input_dim,
+                                       output_dim=self.config.word_embed_dim,
+                                       mask_zero=True)
+        # dropout 丢弃比例0.2
+        text_embed = SpatialDropout1D(0.2)(word_embedding(input_text))
 
-        if self.config.aspect_embed_type == 'random':
-            asp_embedding = Embedding(input_dim=self.n_aspect, output_dim=self.config.aspect_embed_dim)
+        if self.config.aspect_embed_type is 'random':
+            asp_embedding = Embedding(input_dim=self.config.aspect_random_input_dim,
+                                      output_dim=self.config.aspect_embed_dim)
         else:
             asp_embedding = Embedding(input_dim=self.aspect_embeddings.shape[0],
                                       output_dim=self.config.aspect_embed_dim,
@@ -270,20 +266,33 @@ class SentimentModel(object):
         input_text = Input(shape=(self.max_len,))
         # 以char序列加入
         input_aspect = Input(shape=(self.asp_max_len,), )
+        text_embedding = None
+        aspect_embedding = None
+        if self.config.word_embed_type is not 'random':
+            # embedding 按照原文来--使用了一个统一的词汇表，如果分开使用text和aspect的词汇表会怎么样呢？
+            text_embedding = Embedding(input_dim=self.all_embeddings.shape[0],
+                                       output_dim=self.config.word_embed_dim,
+                                       input_length=self.max_len,
+                                       weights=[self.all_embeddings],
+                                       trainable=self.config.word_embed_trainable,
+                                       mask_zero=True)
 
-        # embedding 按照原文来--使用了一个统一的词汇表，如果分开使用text和aspect的词汇表会怎么样呢？
-        text_embedding = Embedding(input_dim=self.all_embeddings.shape[0],
-                                   output_dim=self.config.word_embed_dim,
-                                   input_length = self.max_len,
-                                   weights=[self.all_embeddings],
-                                   trainable=self.config.word_embed_trainable,
-                                   mask_zero=True)
-        aspect_embedding = Embedding(input_dim=self.all_embeddings.shape[0],
-                                     output_dim=self.config.word_embed_dim,
-                                     # input_length = self.asp_max_len,
-                                     weights=[self.all_embeddings],
-                                     trainable=self.config.aspect_embed_trainable,
-                                     mask_zero=True)
+            aspect_embedding = Embedding(input_dim=self.all_embeddings.shape[0],
+                                         output_dim=self.config.word_embed_dim,
+                                         input_length=self.asp_max_len,
+                                         weights=[self.all_embeddings],
+                                         trainable=self.config.aspect_embed_trainable,
+                                         mask_zero=True)
+        else:
+            text_embedding = Embedding(input_dim=self.config.all_random_input_dim,
+                                       output_dim=self.config.word_embed_dim,
+                                       input_length=self.max_len,
+                                       mask_zero=True)
+
+            aspect_embedding = Embedding(input_dim=self.config.all_random_input_dim,
+                                         output_dim=self.config.word_embed_dim,
+                                         input_length=self.asp_max_len,
+                                         mask_zero=True)
 
         text_embed = text_embedding(input_text)
         text_embed = GaussianNoise(self.config.noise)(text_embed)

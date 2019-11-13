@@ -17,13 +17,19 @@ def load_glove_format(filename):
         for line in f:
             line = line.strip().split()
             word = line[0]
-            word_vector = np.array([float(v) for v in line[1:]])
-            word_vectors[word] = word_vector
+            word_vector = np.array([float(v) for v in line[1:]]) # 256
+            if len(word_vector) == 256:
+                word_vectors[word] = word_vector
+                # print(word_vector)
             if embeddings_dim == -1:
                 embeddings_dim = len(word_vector)
-
+    # i = 0
+    # for vm in word_vectors.values():
+    #     if len(vm)!=256:
+    #         print(i)
+    #         print(len(vm))
+    #     i+=1
     assert all(len(vw) == embeddings_dim for vw in word_vectors.values())
-
     return word_vectors, embeddings_dim
 
 
@@ -170,7 +176,7 @@ def pre_process_Car(file_folder, word_cut_func = None):
     print('building vocabulary...')
     # 变成字典
     char_vocab = build_vocabulary(char_corpus, start_id=1)
-    aspect_vocab = build_vocabulary(aspect_corpus, start_id=0) # mask_zero = false
+    aspect_vocab = build_vocabulary(aspect_corpus, start_id=0)  # mask_zero = false
 
     aspect_text_char_vocab = build_vocabulary(aspect_text_char_corpus, start_id=1)
 
@@ -215,6 +221,21 @@ def pre_process_Car(file_folder, word_cut_func = None):
 
     print('shape of all_char_w2v:', all_char_w2v.shape)
     print('sample of all_char_w2v:', all_char_w2v[:2, :5])
+
+    # use glove
+    if config.word_embed_type == 'glove':
+        word_glove = build_glove_embedding(word_vocab, glove_vectors, glove_embed_dim)
+        aspect_word_glove = build_aspect_embedding(aspect_vocab, word_cut_func, word_vocab, word_glove)
+        aspect_text_word_glove = build_aspect_text_embedding(aspect_text_word_vocab, word_vocab, word_glove)
+        np.save(os.path.join(file_folder, 'word_glove.npy'), word_glove)
+        np.save(os.path.join(file_folder, 'aspect_word_glove.npy'), aspect_word_glove)
+        np.save(os.path.join(file_folder, 'aspect_text_word_glove.npy'), aspect_text_word_glove)
+        print('shape of word_glove:', word_glove.shape)
+        print('sample of word_glove:', word_glove[:2, :5])
+        print('shape of aspect_word_glove:', aspect_word_glove.shape)
+        print('sample of aspect_word_glove:', aspect_word_glove[:2, :5])
+        print('shape of aspect_text_word_glove:', aspect_text_word_glove.shape)
+        print('sample of aspect_text_word_glove:', aspect_text_word_glove[:2, :5])
 
     # prepare input
     print('preparing text input...')
@@ -277,6 +298,6 @@ def pre_process_Car(file_folder, word_cut_func = None):
 
 if __name__ == '__main__':
     config = Config()
-    # glove_vectors, glove_embed_dim = load_glove_format('./raw_data/glove.42B.300d.txt')
-    # pre_process('./data/twitter', lambda x: nltk.word_tokenize(x))
-    pre_process_Car('./data/car')
+    glove_vectors, glove_embed_dim = load_glove_format('./data/vectors.txt')  # 1084 * 256
+    print(glove_embed_dim)
+    # pre_process_Car('./data/car')

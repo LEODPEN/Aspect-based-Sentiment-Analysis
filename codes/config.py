@@ -15,12 +15,16 @@ class Config(object):
         self.asp_max_len = {'car': {'word': 3, 'char': 19}, # word 同样没做最大长度, 其实char做了好想也没有用; 11.12 更新：tsa要用到，果然有用！
                             'twitter': {'word': 3, 'char': 21}}
         self.word_embed_dim = 300
+        self.text_random_input_dim = 2380  # 2378 + 2
+        # self.aspect_char_random_input_dim = 71 # 69 + 2 tsa的random时候用
+        self.aspect_random_input_dim = 20  # atae_lstm random用
+        self.all_random_input_dim = 2381  # 2379 + 2
         self.word_embed_trainable = False
-        self.word_embed_type = 'w2v'
+        self.word_embed_type = 'random' #'random' #'w2v'
         # self.word_embed_type = 'glove'
         self.aspect_embed_dim = 300
         self.aspect_embed_trainable = False
-        self.aspect_embed_type = 'w2v'
+        self.aspect_embed_type = 'random' #'random' #'w2v'
         # self.aspect_embed_type = 'glove'
         self.use_text_input = False
         self.use_aspect_input = False
@@ -36,11 +40,11 @@ class Config(object):
 
         # model training configuration
         self.batch_size = 32
-        self.n_epochs = 25 #8 #50
+        self.n_epochs = 8 #25 #50
         self.n_classes = 3
 
         self.dropout = 0.2
-        self.learning_rate = 0.001 # lr倒是都一样
+        self.learning_rate = 0.001  # lr倒是都一样
         self.optimizer = "adam"
 
         # tsa
