@@ -56,7 +56,7 @@ class SentimentModel(object):
         self.max_len = self.config.max_len[self.config.data_name][self.level] # 127
         self.asp_max_len = self.config.asp_max_len[self.config.data_name][self.level] # 19
 
-        # 搞定embedding only for atae // tsa 换名字来叫
+        # embedding only for atae // tsa 换名字来叫
         if self.config.use_text_input and self.config.word_embed_type is not 'random':
 
             self.text_embeddings = np.load('./data/%s/%s_%s.npy' % (self.config.data_folder, self.level,
@@ -66,7 +66,7 @@ class SentimentModel(object):
             # random
             self.text_embeddings = None
 
-        if self.config.use_aspect_input and self.config.word_embed_type is not 'random':
+        if self.config.use_aspect_input and self.config.word_embed_type not in ['random', 'glove']:  # only w2v
             self.aspect_embeddings = np.load('./data/%s/aspect_%s_%s.npy' % (self.config.data_folder, self.level,
                                                                              self.config.aspect_embed_type))
             # # 是否随机chushihua
@@ -76,12 +76,12 @@ class SentimentModel(object):
         else:
             self.aspect_embeddings = None
 
-        if self.config.use_aspect_text_input and self.config.aspect_embed_type is not 'random':
+        if self.config.use_aspect_text_input and self.config.aspect_embed_type not in ['random', 'glove']:  # only w2v
             # 可惜不用这个
             self.aspect_text_embeddings = np.load('./data/%s/aspect_text_%s_%s.npy' % (self.config.data_folder,
                                                                                        self.level,
                                                                                        self.config.word_embed_type))
-            self.config.idx2aspect_token = load_idx2token(self.config.data_folder, 'aspect_text_{}'.format(self.level))
+            # self.config.idx2aspect_token = load_idx2token(self.config.data_folder, 'aspect_text_{}'.format(self.level))
         else:
             self.aspect_text_embeddings = None
 
@@ -238,7 +238,7 @@ class SentimentModel(object):
             asp_embedding = Embedding(input_dim=self.config.aspect_random_input_dim,
                                       output_dim=self.config.aspect_embed_dim)
         else:
-            asp_embedding = Embedding(input_dim=self.aspect_embeddings.shape[0],
+            asp_embedding = Embedding(input_dim=self.config.aspect_random_input_dim,  # 其实永远为20
                                       output_dim=self.config.aspect_embed_dim,
                                       trainable=self.config.aspect_embed_trainable)
         aspect_embed = asp_embedding(input_aspect)

@@ -29,9 +29,9 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
         config.exp_name += '_aspv_{}'.format(config.aspect_embed_type)
         config.exp_name = config.exp_name + '_update' if config.aspect_embed_trainable else config.exp_name + '_fix'
     # 不用 ，否则tensorflow_hub问题难解决？
-    if config.use_elmo:
-        config.exp_name += '_elmo_alone_{}_mode_{}_{}'.format(config.use_elmo_alone, config.elmo_output_mode,
-                                                              'update' if config.elmo_trainable else 'fix')
+    # if config.use_elmo:
+    #     config.exp_name += '_elmo_alone_{}_mode_{}_{}'.format(config.use_elmo_alone, config.elmo_output_mode,
+    #                                                           'update' if config.elmo_trainable else 'fix')
 
     print(config.exp_name)
 

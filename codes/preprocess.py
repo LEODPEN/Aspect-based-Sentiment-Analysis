@@ -66,12 +66,13 @@ def build_embedding(corpus, vocab, embedding_dim=300):
     return emb
 
 
-def build_glove_embedding(vocab, word_vectors, embed_dim):
+def build_glove_embedding(vocab, word_vectors, embed_dim): # 256
     emb_matrix = np.zeros(shape=(len(vocab) + 2, embed_dim), dtype='float32')
 
     count = 0
     for word, i in vocab.items():
         if word not in word_vectors:
+            # 随机搞, 1804 2379 感觉这样的字还挺多的。。。
             count += 1
             emb_matrix[i, :] = np.random.uniform(-0.1, 0.1, embed_dim)
         else:
@@ -224,18 +225,14 @@ def pre_process_Car(file_folder, word_cut_func = None):
 
     # use glove
     if config.word_embed_type == 'glove':
-        word_glove = build_glove_embedding(word_vocab, glove_vectors, glove_embed_dim)
-        aspect_word_glove = build_aspect_embedding(aspect_vocab, word_cut_func, word_vocab, word_glove)
-        aspect_text_word_glove = build_aspect_text_embedding(aspect_text_word_vocab, word_vocab, word_glove)
-        np.save(os.path.join(file_folder, 'word_glove.npy'), word_glove)
-        np.save(os.path.join(file_folder, 'aspect_word_glove.npy'), aspect_word_glove)
-        np.save(os.path.join(file_folder, 'aspect_text_word_glove.npy'), aspect_text_word_glove)
-        print('shape of word_glove:', word_glove.shape)
-        print('sample of word_glove:', word_glove[:2, :5])
-        print('shape of aspect_word_glove:', aspect_word_glove.shape)
-        print('sample of aspect_word_glove:', aspect_word_glove[:2, :5])
-        print('shape of aspect_text_word_glove:', aspect_text_word_glove.shape)
-        print('sample of aspect_text_word_glove:', aspect_text_word_glove[:2, :5])
+        char_glove = build_glove_embedding(char_vocab, glove_vectors, glove_embed_dim)
+        all_char_glove = build_glove_embedding(all_char_vocab, glove_vectors, glove_embed_dim)
+        np.save(os.path.join(file_folder, 'char_glove.npy'), char_glove)
+        np.save(os.path.join(file_folder, 'all_char_glove.npy'), all_char_glove)
+        print('shape of char_glove:', char_glove.shape)
+        print('sample of char_glove:', char_glove[:2, :5])
+        print('shape of all_char_glove:', all_char_glove.shape)
+        print('sample of all-char_glove:', all_char_glove[:2, :5])
 
     # prepare input
     print('preparing text input...')
@@ -300,4 +297,5 @@ if __name__ == '__main__':
     config = Config()
     glove_vectors, glove_embed_dim = load_glove_format('./data/vectors.txt')  # 1084 * 256
     print(glove_embed_dim)
-    # pre_process_Car('./data/car')
+
+    pre_process_Car('./data/car')

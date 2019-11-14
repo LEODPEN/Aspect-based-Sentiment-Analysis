@@ -14,18 +14,16 @@ class Config(object):
                         'twitter': {'word': 73, 'char': 188}}
         self.asp_max_len = {'car': {'word': 3, 'char': 19}, # word 同样没做最大长度, 其实char做了好想也没有用; 11.12 更新：tsa要用到，果然有用！
                             'twitter': {'word': 3, 'char': 21}}
-        self.word_embed_dim = 300
+        self.word_embed_dim = 256  #300
         self.text_random_input_dim = 2380  # 2378 + 2
         # self.aspect_char_random_input_dim = 71 # 69 + 2 tsa的random时候用
         self.aspect_random_input_dim = 20  # atae_lstm random用
         self.all_random_input_dim = 2381  # 2379 + 2
         self.word_embed_trainable = False
-        self.word_embed_type = 'random' #'random' #'w2v'
-        # self.word_embed_type = 'glove'
-        self.aspect_embed_dim = 300
+        self.word_embed_type = 'glove' #'random' #'w2v'
+        self.aspect_embed_dim = 256  # 300
         self.aspect_embed_trainable = False
-        self.aspect_embed_type = 'random' #'random' #'w2v'
-        # self.aspect_embed_type = 'glove'
+        self.aspect_embed_type = 'glove' #'random' #'w2v'
         self.use_text_input = False
         self.use_aspect_input = False
         self.use_aspect_text_input = False
