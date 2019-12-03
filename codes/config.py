@@ -20,10 +20,10 @@ class Config(object):
         self.aspect_random_input_dim = 20  # atae_lstm random用
         self.all_random_input_dim = 2381  # 2379 + 2
         self.word_embed_trainable = False
-        self.word_embed_type = 'glove' #'random' #'w2v'
+        self.word_embed_type =  'random'#'glove' #'random' #'w2v'
         self.aspect_embed_dim = 256  # 300
         self.aspect_embed_trainable = False
-        self.aspect_embed_type = 'glove' #'random' #'w2v'
+        self.aspect_embed_type = 'random' #'glove' #'random' #'w2v'
         self.use_text_input = False
         self.use_aspect_input = False
         self.use_aspect_text_input = False
@@ -38,7 +38,7 @@ class Config(object):
 
         # model training configuration
         self.batch_size = 32
-        self.n_epochs = 8 #25 #50
+        self.n_epochs = 25 #8 #25 #50
         self.n_classes = 3
 
         self.dropout = 0.2

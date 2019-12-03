@@ -5,6 +5,7 @@ import time
 from config import Config
 from data_loader import load_input_data, load_label
 from models import SentimentModel
+from utils import concat
 
 # choose
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
@@ -72,10 +73,25 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
     # load the best model
     model.load()
 
-    print('score over test data...')
+    print("start to score ...")
+    print('score over dev data...')
     model.score(dev_input, dev_label)
+    print('score over test data...')
     model.score(test_input, test_label)
-
+    print("score done!")
+    print('start to predict and save the results...')
+    print('predict over dev data...')
+    result = model.predict(dev_input)
+    print("save prediction and actual labels of dev...")
+    # print(dev_label)
+    # print(result)
+    concat(result, dev_label, model_name, 1)
+    print('predict over test data...')
+    result2 = model.predict(test_input)
+    print("save prediction and actual labels of dev...")
+    concat(result2, test_label, model_name, 2)
+    print('predict and save the results done!')
+    print('totally done!')
 
 
 
@@ -89,8 +105,8 @@ if __name__ == '__main__':
     config.word_embed_trainable = True
     config.aspect_embed_trainable = True
 
-    # train_model('car', 'car', 'char', 'atae_lstm')
-    train_model('car', 'car', 'char', 'tsa')
+    train_model('car', 'car', 'char', 'atae_lstm')
+    # train_model('car', 'car', 'char', 'tsa')
 
 
     # others

@@ -62,6 +62,7 @@ DataStories at SemEval-2017 Task 4: Deep LSTM with Attention for Message-level a
     ├── data
     │   ├── car    preprocessed data files
     |   └── others
+    ├── xxx.csv    csv files of pre & rl labels
     ├── config.py
     ├── data_loader.py
     ├── layers.py

@@ -171,7 +171,7 @@ class SentimentModel(object):
             text, aspect = input_data
             print(aspect)
             input_pad = [pad_sequences(text, self.max_len), np.array(aspect)]
-            print(input_data) # 三维
+            print(input_data)
         elif self.config.model_name is 'tsa':
             text, aspect_text = input_data
             print(aspect_text)
@@ -190,8 +190,9 @@ class SentimentModel(object):
         y_valid = self.prepare_label(valid_label)
 
         print('start training...')
-        self.model.fit(x=x_train, y=y_train, batch_size=self.config.batch_size, epochs=self.config.n_epochs,
+        history = self.model.fit(x=x_train, y=y_train, batch_size=self.config.batch_size, epochs=self.config.n_epochs,
                        validation_data=(x_valid, y_valid), callbacks=self.callbacks)
+        print(history)
         print('training end...')
 
         print('score over valid data:')
@@ -202,12 +203,14 @@ class SentimentModel(object):
         input_pad = self.prepare_input(input_data)
         label = self.prepare_label(label)
         prediction = self.model.predict(input_pad)
-        print(prediction)
+        # no need to print them
+        # print(prediction)
         get_score_senti(label, prediction)
 
     def predict(self, input_data):
         input_pad = self.prepare_input(input_data)
         prediction = self.model.predict(input_pad)
+        # print(prediction)
         return np.argmax(prediction, axis=-1)
 
     # def getBiLSTM(self):
