@@ -9,7 +9,7 @@ from utils import concat
 
 # choose
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-# os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"  # MacOs
+# os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # MacOs
 
 
 def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
@@ -85,11 +85,11 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
     print("save prediction and actual labels of dev...")
     # print(dev_label)
     # print(result)
-    concat(result, dev_label, model_name, 1)
+    concat(result, dev_label, model_name, 1, config.word_embed_type)
     print('predict over test data...')
     result2 = model.predict(test_input)
     print("save prediction and actual labels of dev...")
-    concat(result2, test_label, model_name, 2)
+    concat(result2, test_label, model_name, 2, config.word_embed_type)
     print('predict and save the results done!')
     print('totally done!')
 

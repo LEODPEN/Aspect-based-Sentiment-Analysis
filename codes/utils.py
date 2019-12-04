@@ -18,7 +18,7 @@ def pickle_dump(obj, file_path):
 
 
 
-def concat(predict, real, model_name, type):
+def concat(predict, real, model_name, type, word_embed_type):
     """
         return score for predictions made by sentiment analysis model
         :param predict : list []
@@ -34,10 +34,10 @@ def concat(predict, real, model_name, type):
 
     name = ""
     if type is 1:
-        name = '{}_predict_result_{}.csv'.format(model_name, 'dev')
+        name = '{}_predict_result_{}_{}.csv'.format(model_name, word_embed_type, 'dev')
     else:
     # type = 2
-        name = '{}_predict_result_{}.csv'.format(model_name, 'test')
+        name = '{}_predict_result_{}_{}.csv'.format(model_name, word_embed_type, 'test')
     path = os.getcwd()
     print("the csv file of results of comparing is at " + path + '/' + name)
     # 保存列index, 便于寻找不同行
