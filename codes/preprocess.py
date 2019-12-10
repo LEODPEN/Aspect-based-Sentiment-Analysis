@@ -3,6 +3,7 @@ import os
 import nltk
 import numpy as np
 import pandas as pd
+import nltk
 from collections import Counter
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
@@ -17,8 +18,8 @@ def load_glove_format(filename):
         for line in f:
             line = line.strip().split()
             word = line[0]
-            word_vector = np.array([float(v) for v in line[1:]]) # 256
-            if len(word_vector) == 256:
+            word_vector = np.array([float(v) for v in line[1:]])  # 256
+            if len(word_vector) == 300:  # 256 for car
                 word_vectors[word] = word_vector
                 # print(word_vector)
             if embeddings_dim == -1:
@@ -66,7 +67,7 @@ def build_embedding(corpus, vocab, embedding_dim=300):
     return emb
 
 
-def build_glove_embedding(vocab, word_vectors, embed_dim): # 256
+def build_glove_embedding(vocab, word_vectors, embed_dim): # 256 or 300
     emb_matrix = np.zeros(shape=(len(vocab) + 2, embed_dim), dtype='float32')
 
     count = 0
@@ -112,6 +113,23 @@ def analyze_len_distribution(train_input, valid_input, test_input):
     text_len = list()
     text_len.extend([len(l) for l in train_input])
     text_len.extend([len(l) for l in valid_input])
+    text_len.extend([len(l) for l in test_input])
+    max_len = np.max(text_len)
+    min_len = np.min(text_len)
+    avg_len = np.average(text_len)
+    median_len = np.median(text_len)
+    print('max len:', max_len, 'min_len', min_len, 'avg len', avg_len, 'median len', median_len)
+    for i in range(int(median_len), int(max_len), 5):
+        less = list(filter(lambda x: x <= i, text_len))
+        ratio = len(less) / len(text_len)
+        print(i, ratio)
+        if ratio >= 0.99:
+            break
+
+
+def analyze_len_distribution2(train_input, test_input):
+    text_len = list()
+    text_len.extend([len(l) for l in train_input])
     text_len.extend([len(l) for l in test_input])
     max_len = np.max(text_len)
     min_len = np.min(text_len)
@@ -293,9 +311,136 @@ def pre_process_Car(file_folder, word_cut_func = None):
     analyze_class_distribution(test_label_data[0].values.tolist())
 
 
+def pre_process_laptop(file_folder, word_cut_func = None):
+    print('preprocessing: ', file_folder)
+    # 读取数据
+    train_data = pd.read_csv(os.path.join(file_folder, 'laptop2015_train_text_cate.tsv'), sep=config.sep, header=None,
+                             index_col=None)
+    train_data['word_list'] = train_data[0].apply(word_cut_func)
+    train_data['aspect_word_list'] = train_data[1].apply(word_cut_func)
+
+    test_data = pd.read_csv(os.path.join(file_folder, 'laptop2015_test_text_cate.tsv'), sep=config.sep, header=None,
+                            index_col=None)
+    test_data['word_list'] = test_data[0].apply(word_cut_func)
+    test_data['aspect_word_list'] = test_data[1].apply(word_cut_func)
+
+    print('size of training set:', len(train_data))
+    print('size of test set:', len(test_data))
+
+    # word 集
+    word_corpus = np.concatenate((train_data['word_list'].values, test_data['word_list'].values)).tolist()
+
+    # aspect 集
+    aspect_corpus = np.concatenate((train_data[1].values,
+                                    test_data[1].values)).tolist()
+
+    # aspect word 集
+    aspect_text_word_corpus = np.concatenate((train_data['aspect_word_list'].values,
+                                              test_data['aspect_word_list'].values)).tolist()
+
+    # all word 集, 主要用于tsa model
+    all_word_corpus = np.concatenate((train_data['word_list'].values,
+                                      test_data['word_list'].values,
+                                      train_data['aspect_word_list'].values,
+                                      test_data['aspect_word_list'].values)).tolist()
+
+    # build vocabulary
+    print('building vocabulary...')
+    # 变成字典
+    word_vocab = build_vocabulary(word_corpus, start_id=1)
+    aspect_vocab = build_vocabulary(aspect_corpus, start_id=0)  # mask_zero = false
+
+    aspect_text_word_vocab = build_vocabulary(aspect_text_word_corpus, start_id=1)
+
+    all_word_vocab = build_vocabulary(all_word_corpus, start_id=1)
+
+    pickle_dump(word_vocab, os.path.join(file_folder, 'word_vocab.pkl'))
+    pickle_dump(aspect_vocab, os.path.join(file_folder, 'aspect_vocab.pkl'))
+    pickle_dump(aspect_text_word_vocab, os.path.join(file_folder, 'aspect_text_word_vocab.pkl'))
+    pickle_dump(all_word_vocab, os.path.join(file_folder, 'all_word_vocab.pkl'))
+
+    print('finished building 4 vocabulary sets!')
+    print('len of word vocabulary:', len(word_vocab))
+    print('sample of word vocabulary:', list(word_vocab.items())[:10])
+    print('len of aspect vocabulary:', len(aspect_vocab))
+    print('sample of aspect vocabulary:', list(aspect_vocab.items())[:10])
+    print('len of aspect text word vocabulary:', len(aspect_text_word_vocab))
+    print('sample of aspect text word vocabulary:', list(aspect_text_word_vocab.items())[:10])
+    print('len of all word vocabulary:', len(all_word_vocab))
+    print('sample of all word vocabulary:', list(all_word_vocab.items())[:10])
+
+    # prepare embedding
+    print('preparing embedding...')
+    # use glove
+    if config.word_embed_type == 'glove':
+        word_glove = build_glove_embedding(word_vocab, glove_vectors, glove_embed_dim)
+        all_word_glove = build_glove_embedding(all_word_vocab, glove_vectors, glove_embed_dim)
+        np.save(os.path.join(file_folder, 'word_glove.npy'), word_glove)
+        np.save(os.path.join(file_folder, 'all_word_glove.npy'), all_word_glove)
+        print('shape of word_glove:', word_glove.shape)
+        print('sample of char_glove:', word_glove[:2, :5])
+        print('shape of all_word_glove:', all_word_glove.shape)
+        print('sample of all_word_glove:', all_word_glove[:2, :5])
+
+    # prepare input
+    print('preparing text input...')
+    train_word_input = train_data['word_list'].apply(
+        lambda x: [word_vocab.get(word, len(word_vocab) + 1) for word in x]).values.tolist()
+    test_word_input = test_data['word_list'].apply(
+        lambda x: [word_vocab.get(word, len(word_vocab) + 1) for word in x]).values.tolist()
+
+    pickle_dump(train_word_input, os.path.join(file_folder, 'train_word_input.pkl'))
+    pickle_dump(test_word_input, os.path.join(file_folder, 'test_word_input.pkl'))
+
+    print('finished preparing text input!')
+    print('length analysis of text char input')
+    analyze_len_distribution2(train_word_input, test_word_input)
+
+    print('preparing aspect input...')
+    train_aspect_input = train_data[1].apply(lambda x: [aspect_vocab[x]]).values.tolist()
+    test_aspect_input = test_data[1].apply(lambda x: [aspect_vocab[x]]).values.tolist()
+    pickle_dump(train_aspect_input, os.path.join(file_folder, 'train_aspect_input.pkl'))
+    pickle_dump(test_aspect_input, os.path.join(file_folder, 'test_aspect_input.pkl'))
+    print('finished preparing aspect input!')
+
+    print('preparing aspect text input...')
+    train_aspect_text_word_input = train_data['aspect_word_list'].apply(
+        lambda x: [aspect_text_word_vocab.get(word, len(aspect_text_word_vocab) + 1) for word in x]).values.tolist()
+
+    test_aspect_text_word_input = test_data['aspect_word_list'].apply(
+        lambda x: [aspect_text_word_vocab.get(word, len(aspect_text_word_vocab) + 1) for word in x]).values.tolist()
+    pickle_dump(train_aspect_text_word_input, os.path.join(file_folder, 'train_word_aspect_input.pkl'))
+    pickle_dump(test_aspect_text_word_input, os.path.join(file_folder, 'test_word_aspect_input.pkl'))
+
+    print('finished preparing aspect text input!')
+    print('length analysis of aspect text word input')  # 占比
+    analyze_len_distribution2(train_aspect_text_word_input, test_aspect_text_word_input)
+
+    # prepare output
+    print('preparing output....')
+    train_label_data = pd.read_csv(os.path.join(file_folder, 'laptop2015_train_senti.tsv'), sep=config.sep, header=None,
+                                   index_col=None)
+    test_label_data = pd.read_csv(os.path.join(file_folder, 'laptop2015_test_senti.tsv'), sep=config.sep, header=None,
+                                  index_col=None)
+    pickle_dump(train_label_data[0].values.tolist(), os.path.join(file_folder, 'train_label.pkl'))
+    pickle_dump(test_label_data[0].values.tolist(), os.path.join(file_folder, 'test_label.pkl'))
+    print('finished preparing output!')
+
+    print('class analysis of training set:')
+    analyze_class_distribution(train_label_data[0].values.tolist())
+    print('class analysis of test set:')
+    analyze_class_distribution(test_label_data[0].values.tolist())
+
+
+
 if __name__ == '__main__':
     config = Config()
-    glove_vectors, glove_embed_dim = load_glove_format('./data/vectors.txt')  # 1084 * 256
+    # car datasets
+    # glove_vectors, glove_embed_dim = load_glove_format('./data/vectors.txt')  # 1084 * 256
+
+    # laptop datasets
+    glove_vectors, glove_embed_dim = load_glove_format('./data/glove.6B.300d.txt')
     print(glove_embed_dim)
 
-    pre_process_Car('./data/car')
+    # pre_process_Car('./data/car')
+    pre_process_laptop('./data/laptop', lambda x: nltk.word_tokenize(x))

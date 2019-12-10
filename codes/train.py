@@ -9,7 +9,7 @@ from utils import concat
 
 # choose
 # os.environ['CUDA_VISIBLE_DEVICES'] = '1'
-# os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # MacOs
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"  # MacOs
 
 
 def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
@@ -105,8 +105,11 @@ if __name__ == '__main__':
     config.word_embed_trainable = True
     config.aspect_embed_trainable = True
 
-    train_model('car', 'car', 'char', 'atae_lstm')
-    # train_model('car', 'car', 'char', 'tsa')
+    # train_model('car', 'car', 'char', 'atae_lstm')
+    train_model('car', 'car', 'char', 'tsa')
+
+    # train_model('laptop', 'laptop', 'word', 'atae_lstm')
+    # train_model('laptop', 'laptop', 'word', 'tsa')
 
 
     # others
