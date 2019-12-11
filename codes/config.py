@@ -13,18 +13,18 @@ class Config(object):
         # len of all word vocabulary: 2976
 
         # input configuration
-        self.data_folder = 'car' #'laptop'
-        self.data_name = 'car' #'laptop'
+        self.data_folder = 'laptop'  #'car' #'laptop'
+        self.data_name = 'laptop'  #'car' #'laptop'
         self.level = 'word'     # options are 'word' & 'char'
         self.max_len = {'car': {'word': 111, 'char': 127}, # word 没做最大长度嗷
                         'laptop': {'word': 74, 'char': 188}}  # char 没做最大长度
         self.asp_max_len = {'car': {'word': 3, 'char': 19},  # word 同样没做最大长度, 其实char做了好想也没有用; 11.12 更新：tsa要用到，果然有用！
                             'laptop': {'word': 3, 'char': 21}}  # char 没做最大长度
         self.word_embed_dim = 300 #256  #300
-        self.text_random_input_dim = 2380  # 2378 + 2
+        self.text_random_input_dim = 2970 #2968 + 2  # 2378 + 2
         # self.aspect_char_random_input_dim = 71 # 69 + 2 tsa的random时候用
-        self.aspect_random_input_dim = 20  # atae_lstm random用
-        self.all_random_input_dim = 2381  # 2379 + 2
+        self.aspect_random_input_dim = 86 # 20  # atae_lstm random用
+        self.all_random_input_dim = 2978 # 2976 + 2  # 2379 + 2
         self.word_embed_trainable = False
         self.word_embed_type = 'glove' #'glove' #'random' #'w2v'
         self.aspect_embed_dim = 300 #256  # 300
@@ -44,7 +44,7 @@ class Config(object):
 
         # model training configuration
         self.batch_size = 32
-        self.n_epochs = 8 #8 #25 #50
+        self.n_epochs = 25 #8 #25 #50
         self.n_classes = 3
 
         self.dropout = 0.2

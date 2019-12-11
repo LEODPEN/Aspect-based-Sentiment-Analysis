@@ -40,17 +40,18 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
     model = SentimentModel(config)
 
     test_input = load_input_data(data_folder, 'test', level, config.use_text_input,
-                                 config.use_aspect_input,config.use_aspect_text_input)
+                                 config.use_aspect_input, config.use_aspect_text_input)
     test_label = load_label(data_folder, 'test')
 
     print(test_input)
 
-    dev_input = load_input_data(data_folder, 'valid', level, config.use_text_input,
-                                 config.use_aspect_input,config.use_aspect_text_input)
-
-    dev_label = load_label(data_folder, 'valid')
-
-    print(dev_input)
+    # there's no dev data of laptop
+    # dev_input = load_input_data(data_folder, 'valid', level, config.use_text_input,
+    #                              config.use_aspect_input,config.use_aspect_text_input)
+    #
+    # dev_label = load_label(data_folder, 'valid')
+    #
+    # print(dev_input)
 
     # 无现有模型，开始训练
     if not os.path.exists(os.path.join(config.checkpoint_dir, '%s/%s.hdf5' % (data_folder, config.exp_name))):
@@ -60,12 +61,12 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
                                       config.use_aspect_input, config.use_aspect_text_input)
 
         train_label = load_label(data_folder, 'train')
-        valid_input = load_input_data(data_folder, 'valid', level, config.use_text_input,
-                                      config.use_aspect_input, config.use_aspect_text_input)
-        valid_label = load_label(data_folder, 'valid')
+        # valid_input = load_input_data(data_folder, 'valid', level, config.use_text_input,
+        #                               config.use_aspect_input, config.use_aspect_text_input)
+        # valid_label = load_label(data_folder, 'valid')
 
         # train
-        model.train(train_input, train_label, valid_input, valid_label)
+        model.train(train_input, train_label, test_input, test_label)
 
         elapsed_time = time.time() - start_time
         print('training time:', time.strftime("%H:%M:%S", time.gmtime(elapsed_time)))
@@ -74,18 +75,18 @@ def train_model(data_folder, data_name, level, model_name, is_aspect_term=True):
     model.load()
 
     print("start to score ...")
-    print('score over dev data...')
-    model.score(dev_input, dev_label)
+    # print('score over dev data...')
+    # model.score(dev_input, dev_label)
     print('score over test data...')
     model.score(test_input, test_label)
     print("score done!")
     print('start to predict and save the results...')
-    print('predict over dev data...')
-    result = model.predict(dev_input)
-    print("save prediction and actual labels of dev...")
+    # print('predict over dev data...')
+    # result = model.predict(dev_input)
+    # print("save prediction and actual labels of dev...")
     # print(dev_label)
     # print(result)
-    concat(result, dev_label, model_name, 1, config.word_embed_type)
+    # concat(result, dev_label, model_name, 1, config.word_embed_type)
     print('predict over test data...')
     result2 = model.predict(test_input)
     print("save prediction and actual labels of dev...")
@@ -106,10 +107,10 @@ if __name__ == '__main__':
     config.aspect_embed_trainable = True
 
     # train_model('car', 'car', 'char', 'atae_lstm')
-    train_model('car', 'car', 'char', 'tsa')
+    # train_model('car', 'car', 'char', 'tsa')
 
     # train_model('laptop', 'laptop', 'word', 'atae_lstm')
-    # train_model('laptop', 'laptop', 'word', 'tsa')
+    train_model('laptop', 'laptop', 'word', 'tsa')
 
 
     # others

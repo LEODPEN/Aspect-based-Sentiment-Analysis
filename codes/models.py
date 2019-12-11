@@ -53,8 +53,8 @@ class SentimentModel(object):
         self.config = config
         self.level = self.config.level # char
         self.use_elmo = self.config.use_elmo # false
-        self.max_len = self.config.max_len[self.config.data_name][self.level] # 127
-        self.asp_max_len = self.config.asp_max_len[self.config.data_name][self.level] # 19
+        self.max_len = self.config.max_len[self.config.data_name][self.level] # 74 127
+        self.asp_max_len = self.config.asp_max_len[self.config.data_name][self.level] # 3 19
 
         # embedding only for atae // tsa 换名字来叫
         if self.config.use_text_input and self.config.word_embed_type is not 'random':
@@ -171,7 +171,7 @@ class SentimentModel(object):
             text, aspect = input_data
             print(aspect)
             input_pad = [pad_sequences(text, self.max_len), np.array(aspect)]
-            print(input_data)
+            # print(input_data)
         elif self.config.model_name is 'tsa':
             text, aspect_text = input_data
             print(aspect_text)
@@ -189,6 +189,8 @@ class SentimentModel(object):
         x_valid = self.prepare_input(valid_input_data)
         y_valid = self.prepare_label(valid_label)
 
+        print(x_valid)
+        print(y_valid)
         print('start training...')
         history = self.model.fit(x=x_train, y=y_train, batch_size=self.config.batch_size, epochs=self.config.n_epochs,
                        validation_data=(x_valid, y_valid), callbacks=self.callbacks)

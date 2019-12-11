@@ -1,6 +1,6 @@
 # Aspect-based-Sentiment-Analysis
 > Implementation of some aspect-based sentiment analysis models;
-based on car dataset;
+based on car dataset/ laptop dataset;
 3 classes
 
 ### Models
@@ -58,9 +58,11 @@ DataStories at SemEval-2017 Task 4: Deep LSTM with Attention for Message-level a
     .
     ├── ckpt
     |   ├── car    saved model files
+    |   ├── laptop
     |   └── others
     ├── data
     │   ├── car    preprocessed data files
+    |   ├── laptop
     |   └── others
     ├── xxx.csv    csv files of pre & rl labels
     ├── config.py
@@ -71,4 +73,5 @@ DataStories at SemEval-2017 Task 4: Deep LSTM with Attention for Message-level a
     ├── train.py
     └── utils.py
 
+> car : char level / laptop : word level
 
